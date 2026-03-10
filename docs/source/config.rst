@@ -561,7 +561,7 @@ Example:
 Set Fast Client Scan
 ********************
 
-Default 0 (disabled)
+Default 1 (enabled)
 
 Enables fast client scanning to find the interface used by the client.
 
@@ -574,7 +574,7 @@ Useful when a large mesh or other extended network is in use.
 Otherwise the Client Scan could, for large networks, take many seconds to complete.
 
 For example, to enable:
-``option fast_client_scan '1'``
+``option fast_client_scan '0'``
 
 Client timeouts in minutes
 **************************

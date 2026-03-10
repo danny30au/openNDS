@@ -43,8 +43,9 @@ get_client_local_if
 
 fast_client_scan=$(/usr/lib/opennds/libopennds.sh "get_option_from_config" "fast_client_scan")
 
+# Default to fast client scan
 if [ -z "$fast_client_scan" ]; then
-	fast_client_scan=0
+	fast_client_scan=1
 fi
 
 # This script requires the iw and ip packages to find the client wifi or mesh interface (usually available by default)

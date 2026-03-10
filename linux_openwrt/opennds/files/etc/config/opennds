@@ -388,14 +388,14 @@ config opennds 'setup'
 	###########################################################################################
 
 	# Fast Client Scan
-	# Default 0 (disabled)
+	# Default 1 (enabled)
 	# Enables fast client scanning to find the interface used by the client.
 	# Fast scanning skips search for actual wireless interface used.
 	# Useful when a mesh or other extended network is in use as otherwise the Client Scan
 	# could, for large networks, take many seconds to complete.
 	# Any scan delay effects the display rewrite speed of the splash page sequence.
 	# For example, to enable:
-	#option fast_client_scan '1'
+	#option fast_client_scan '0'
 	###########################################################################################
 
 	# Client timeouts in minutes

@@ -1,5 +1,5 @@
 #!/bin/sh
-#Copyright (C) BlueWave Projects and Services 2015-2025
+#Copyright (C) BlueWave Projects and Services 2015-2026
 #This software is released under the GNU GPL license.
 #
 # WARNING - shebang "sh" is for compatiblity with busybox ash (eg on OpenWrt)
@@ -1769,7 +1769,7 @@ auth_restore () {
 			mac="$client_mac"
 			custom="auth_restore"
 
-			authstr="$mac, $sessiontimeout, $uploadrate, $downloadrate, $uploadquota, $downloadquota, preemptivemac-$mac"
+			authstr="$mac, $sessiontimeout, $uploadrate, $downloadrate, $uploadquota, $downloadquota, $custom"
 			macstr=$(echo "$mac" | awk -F":" '{printf "%s%s%s%s%s%s", $1, $2, $3, $4, $5, $6}')
 
 			# Create a file for OpenNDS to use for pre-emptive logins - gets deleted once processed
@@ -2069,13 +2069,15 @@ preemptivemac () {
 		list="preemptivemac"
 		get_list_from_config
 	else
-		param=" mac=$1;sessiontimeout=$sessiontimeout;uploadrate=$uploadrate;downloadrate=$downloadrate;uploadquota=$uploadquota;downloadquota=$downloadquota;custom=preemptivemac-$1 "
+		param="mac=$1;sessiontimeout=$sessiontimeout;uploadrate=$uploadrate;downloadrate=$downloadrate;uploadquota=$uploadquota;downloadquota=$downloadquota;custom=\"preemptivemac-$1\""
 	fi
 
 	for listblock in $param; do
 		mac=""
 
 		eval $listblock
+
+		custom=$(ndsctl b64encode "$custom")
 
 		# skip this client if not in dhcp database
 		iptocheck="$mac"
@@ -2092,9 +2094,9 @@ preemptivemac () {
 			continue
 		fi
 
-		authstr="$mac, $sessiontimeout, $uploadrate, $downloadrate, $uploadquota, $downloadquota, preemptivemac-$mac"
+		authstr="$mac,$sessiontimeout,$uploadrate,$downloadrate,$uploadquota,$downloadquota,$custom"
 		macstr=$(echo "$mac" | awk -F":" '{printf "%s%s%s%s%s%s", $1, $2, $3, $4, $5, $6}')
-		echo "$authstr" > "$preemptive_auth/$macstr"
+		echo -n "$authstr" > "$preemptive_auth/$macstr"
 
 		#b64authstr=$(ndsctl b64encode "$authstr")
 
@@ -2752,6 +2754,13 @@ elif [ "$1" = "download" ]; then
 elif [ "$1" = "debuglevel" ]; then
 	# Sets the debuglevel for externals
 	# $2 contains the debuglevel
+
+	if [ -z "$2" ]; then
+		get_debuglevel
+		printf %d "$debuglevel"
+		exit 1
+	fi
+
 	debuglevel=$2
 	configure_log_location
 	printf %d "$debuglevel" > "$mountpoint/ndsdebuglevel"

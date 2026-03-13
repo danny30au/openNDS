@@ -276,6 +276,7 @@ static int binauth_action(t_client *client, const char *reason, const char *cust
 	char *deauth = "deauth";
 	char *client_auth = "client_auth";
 	char *ndsctl_auth = "ndsctl_auth";
+	char *customdata_raw;
 	char *customdata_enc;
 	char *binauthcmd;
 	int ret = 1;
@@ -283,15 +284,16 @@ static int binauth_action(t_client *client, const char *reason, const char *cust
 
 	if (config->binauth) {
 		debug(LOG_DEBUG, "client->custom=%s", client->custom);
+		customdata_enc = safe_calloc(CUSTOM_ENC);
 
 		if (!client->custom || strlen(client->custom) == 0) {
-			customdata="none";
+			customdata_raw = safe_strdup("none");
+			uh_urlencode(customdata_enc, CUSTOM_ENC, customdata_raw, strlen(customdata_raw));
+			free (customdata_raw);
 		} else {
-			customdata=client->custom;
+			uh_urlencode(customdata_enc, CUSTOM_ENC, customdata, strlen(customdata));
 		}
 
-		customdata_enc = safe_calloc(CUSTOM_ENC);
-		uh_urlencode(customdata_enc, CUSTOM_ENC, customdata, strlen(customdata));
 		debug(LOG_DEBUG, "binauth_action: customdata_enc [%s]", customdata_enc);
 
 		// get client's current session start and end
@@ -351,6 +353,7 @@ static int binauth_action(t_client *client, const char *reason, const char *cust
 				ndsctl_unlock();
 			}
 		}
+
 		return rc;
 	}
 	// No binauth configured, so good to go

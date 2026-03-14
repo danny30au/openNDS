@@ -276,25 +276,19 @@ static int binauth_action(t_client *client, const char *reason, const char *cust
 	char *deauth = "deauth";
 	char *client_auth = "client_auth";
 	char *ndsctl_auth = "ndsctl_auth";
-	char *customdata_raw;
-	char *customdata_enc;
 	char *binauthcmd;
 	int ret = 1;
 	int rc = 0;
 
 	if (config->binauth) {
-		debug(LOG_DEBUG, "client->custom=%s", client->custom);
-		customdata_enc = safe_calloc(CUSTOM_ENC);
 
-		if (!client->custom || strlen(client->custom) == 0) {
-			customdata_raw = safe_strdup("none");
-			uh_urlencode(customdata_enc, CUSTOM_ENC, customdata_raw, strlen(customdata_raw));
-			free (customdata_raw);
-		} else {
-			uh_urlencode(customdata_enc, CUSTOM_ENC, customdata, strlen(customdata));
+		if (!customdata || strlen(customdata) == 0) {
+			customdata = safe_strdup("ZW1wdHk=");
 		}
 
-		debug(LOG_DEBUG, "binauth_action: customdata_enc [%s]", customdata_enc);
+		debug(LOG_DEBUG, "customdata=%s", customdata);
+		client->custom = safe_strdup(customdata);
+		debug(LOG_DEBUG, "binauth_action: client->custom [%s]", client->custom);
 
 		// get client's current session start and end
 		sessionstart = client->session_start;
@@ -334,12 +328,12 @@ static int binauth_action(t_client *client, const char *reason, const char *cust
 			sessionstart,
 			sessionend,
 			client->token,
-			customdata_enc
+			client->custom
 		);
 
+		debug(LOG_DEBUG, "BinAuth Command [ %s ]", binauthcmd);
 		rc = system(binauthcmd);
 		free(binauthcmd);
-		free(customdata_enc);
 
 		if (WIFEXITED(rc)) {
 			rc = WEXITSTATUS(rc);

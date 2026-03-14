@@ -1768,8 +1768,9 @@ auth_restore () {
 		if [ $reauth -eq 1 ]; then
 			mac="$client_mac"
 			custom="auth_restore"
+			custom=$(ndsctl b64encode "$custom")
 
-			authstr="$mac, $sessiontimeout, $uploadrate, $downloadrate, $uploadquota, $downloadquota, $custom"
+			authstr="$mac,$sessiontimeout,$uploadrate,$downloadrate,$uploadquota,$downloadquota,$custom"
 			macstr=$(echo "$mac" | awk -F":" '{printf "%s%s%s%s%s%s", $1, $2, $3, $4, $5, $6}')
 
 			# Create a file for OpenNDS to use for pre-emptive logins - gets deleted once processed

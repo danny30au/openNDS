@@ -1,6 +1,6 @@
 #!/bin/sh
 #Copyright (C) The openNDS Contributors 2004-2022
-#Copyright (C) BlueWave Projects and Services 2015-2025
+#Copyright (C) BlueWave Projects and Services 2015-2026
 #This software is released under the GNU GPL license.
 #
 # A list of variables that are initialised with valid information by the openNDS daemon and can be used in any custom code added below can be seen in the custombinauth.sh stub/template.

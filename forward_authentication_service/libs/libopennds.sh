@@ -2234,6 +2234,23 @@ querystr="$1"
 query_type=${querystr:0:9}
 
 if [ "$query_type" = "%3ffas%3d" ]; then
+
+	# Check for a valid b64encoded query string
+	querystrlen=$((${#querystr}))
+	query_frag=${querystr:10:($querystrlen - 2)}
+
+	query_frag=$(echo "$query_frag" | awk -F "%3d" '{printf "%s", $1}')
+	syslogmessage="query_frag [ $query_frag ]"
+	debugtype="debug"
+	write_to_syslog
+
+	syslogmessage="Probable attempted code injection detected"
+	debugtype="warn"
+
+	case $query_frag in
+		*[!A-Za-z0-9+/=]*) write_to_syslog; exit 1 ;;   # contains invalid character → reject
+	esac
+
 	#Display a splash page sequence using a Themespec
 
 	#################################

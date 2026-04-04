@@ -10,8 +10,8 @@
 
 # === Pipe has priority — parsed exactly like command-line arguments (quotes/spaces work) ===
 if [ ! -t 0 ]; then
-    input=$(cat)
-    eval "set -- $input"
+	input=$(cat)
+	eval "set -- $input"
 fi
 # =============================================================================
 

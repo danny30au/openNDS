@@ -4,7 +4,7 @@
 #This software is released under the GNU GPL license.
 
 # This is a stub for a custom binauth script.
-# It is included by the default binauth_log.sh script when it runs.
+# It is included conditionally by the default binauth_log.sh script when it runs.
 # By default, it does nothing as it is a template.
 # This included script can override:
 # exitlevel, sessiontimeout, upload rate, download rate, upload quota and download quota.
@@ -54,5 +54,6 @@ custombinauth_title="Template"
 custombinauth_description="Custom BinAuth Template"
 
 # Add custom code after this line:
+
 
 

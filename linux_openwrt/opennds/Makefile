@@ -63,6 +63,7 @@ define Package/opennds/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/linux_openwrt/opennds/files/usr/lib/opennds/restart.sh $(1)/usr/lib/opennds/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/forward_authentication_service/binauth/binauth_log.sh $(1)/usr/lib/opennds/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/forward_authentication_service/binauth/custombinauth.sh $(1)/usr/lib/opennds/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/forward_authentication_service/binauth/custombinauth_reauth_interval.sh $(1)/usr/lib/opennds/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/forward_authentication_service/libs/libopennds.sh $(1)/usr/lib/opennds/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/forward_authentication_service/PreAuth/theme_click-to-continue-basic.sh $(1)/usr/lib/opennds/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/forward_authentication_service/PreAuth/theme_click-to-continue-custom-placeholders.sh $(1)/usr/lib/opennds/

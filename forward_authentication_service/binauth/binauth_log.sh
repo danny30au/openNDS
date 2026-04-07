@@ -1,6 +1,6 @@
 #!/bin/sh
 #Copyright (C) The openNDS Contributors 2004-2022
-#Copyright (C) BlueWave Projects and Services 2015-2025
+#Copyright (C) BlueWave Projects and Services 2015-2026
 #This software is released under the GNU GPL license.
 
 
@@ -156,7 +156,7 @@ write_to_syslog () {
 configure_log_location
 
 # Default Values for quotas and session length. These can be overridden.
-# exitlevel can also be set in the custonbinauth.sh script (0=allow, 1=deny)
+# exitlevel can also be set in the check_reauth_interval.sh or custonbinauth.sh scripts (0=allow, 1=deny)
 sessiontimeout=0
 upload_rate=0
 download_rate=0
@@ -283,11 +283,19 @@ else
 	custom=$8
 fi
 
-# Include custom binauth script
+# Include the check_reauth_interval script
+checkreauthintervalpath="/usr/check_reauth_interval.sh"
+
+if [ -e "$checkreauthintervalpath" ]; then
+	. $checkreauthintervalpath
+else
+	/usr/lib/opennds/libopennds.sh syslog "reauth_interval script [ $checkreauthintervalpath ] not found" "error"
+fi
+
+# Include custom binauth script if exitlevel is still 0
 custombinauthpath=$(uci get opennds.setup.custombinauth 2> /dev/null)
 
-
-if [ ! -z "$custombinauthpath" ] && [ -e "$custombinauthpath" ]; then
+if [ ! -z "$custombinauthpath" ] && [ -e "$custombinauthpath" ] && [ "$exitlevel" -eq 0 ]; then
 	. $custombinauthpath
 elif [ ! -z "$custombinauthpath" ] && [ ! -e "$custombinauthpath" ]; then
 	/usr/lib/opennds/libopennds.sh syslog "custom binauth script [ $custombinauthpath ] not found" "error"

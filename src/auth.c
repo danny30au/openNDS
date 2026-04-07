@@ -21,7 +21,7 @@
 /** @file auth.c
     @brief Authentication handling thread
     @author Copyright (C) 2004 Alexandre Carmel-Veilleux <acv@miniguru.ca>
-    @author Copyright (C) 2015-2025 Modifications and additions by BlueWave Projects and Services <opennds@blue-wave.net>
+    @author Copyright (C) 2015-2026 Modifications and additions by BlueWave Projects and Services <opennds@blue-wave.net>
 */
 
 #define _GNU_SOURCE
@@ -276,23 +276,19 @@ static int binauth_action(t_client *client, const char *reason, const char *cust
 	char *deauth = "deauth";
 	char *client_auth = "client_auth";
 	char *ndsctl_auth = "ndsctl_auth";
-	char *customdata_enc;
 	char *binauthcmd;
 	int ret = 1;
 	int rc = 0;
 
 	if (config->binauth) {
-		debug(LOG_DEBUG, "client->custom=%s", client->custom);
 
-		if (!client->custom || strlen(client->custom) == 0) {
-			customdata="none";
-		} else {
-			customdata=client->custom;
+		if (!customdata || strlen(customdata) == 0) {
+			customdata = safe_strdup("ZW1wdHk=");
 		}
 
-		customdata_enc = safe_calloc(CUSTOM_ENC);
-		uh_urlencode(customdata_enc, CUSTOM_ENC, customdata, strlen(customdata));
-		debug(LOG_DEBUG, "binauth_action: customdata_enc [%s]", customdata_enc);
+		debug(LOG_DEBUG, "customdata=%s", customdata);
+		client->custom = safe_strdup(customdata);
+		debug(LOG_DEBUG, "binauth_action: client->custom [%s]", client->custom);
 
 		// get client's current session start and end
 		sessionstart = client->session_start;
@@ -332,12 +328,12 @@ static int binauth_action(t_client *client, const char *reason, const char *cust
 			sessionstart,
 			sessionend,
 			client->token,
-			customdata_enc
+			client->custom
 		);
 
+		debug(LOG_DEBUG, "BinAuth Command [ %s ]", binauthcmd);
 		rc = system(binauthcmd);
 		free(binauthcmd);
-		free(customdata_enc);
 
 		if (WIFEXITED(rc)) {
 			rc = WEXITSTATUS(rc);
@@ -351,6 +347,7 @@ static int binauth_action(t_client *client, const char *reason, const char *cust
 				ndsctl_unlock();
 			}
 		}
+
 		return rc;
 	}
 	// No binauth configured, so good to go

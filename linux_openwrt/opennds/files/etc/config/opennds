@@ -388,14 +388,14 @@ config opennds 'setup'
 	###########################################################################################
 
 	# Fast Client Scan
-	# Default 0 (disabled)
+	# Default 1 (enabled)
 	# Enables fast client scanning to find the interface used by the client.
 	# Fast scanning skips search for actual wireless interface used.
 	# Useful when a mesh or other extended network is in use as otherwise the Client Scan
 	# could, for large networks, take many seconds to complete.
 	# Any scan delay effects the display rewrite speed of the splash page sequence.
 	# For example, to enable:
-	#option fast_client_scan '1'
+	#option fast_client_scan '0'
 	###########################################################################################
 
 	# Client timeouts in minutes
@@ -580,6 +580,17 @@ config opennds 'setup'
 	####
 	#
 	#option binauth '/usr/lib/opennds/my_binauth_script.sh'
+	###########################################################################################
+
+	# Set reauth_interval
+	#
+	# Set the interval in seconds after which a deauthed client can log back in again
+	#
+	# Default: Not set, meaning a deauthed client can log back in immediately.
+	# If set to 0, this is the equivalent of not set.
+	#
+	# Example disallow re-authentication for 10 minutes (600 seconds):
+	#option reauth_interval '600'
 	###########################################################################################
 
 	# Set Fasport
@@ -980,8 +991,8 @@ config opennds 'setup'
 	#
 	# Examples:
 	#
-	#list preemptivemac 'mac=00:00:C0:01:D0:01;sessiontimeout=1200;uploadrate=200;downloadrate=0;uploadquota=0;downloadquota=0;custom=custom string for preemptivemac1'
-	#list preemptivemac 'mac=00:00:D0:01:D0:02;sessiontimeout=1000;uploadrate=200;downloadrate=800;uploadquota=0;downloadquota=0;custom=custom string for preemptivemac2'
+	#list preemptivemac 'mac=00:00:C0:01:D0:01;sessiontimeout=1200;uploadrate=200;downloadrate=0;uploadquota=0;downloadquota=0;custom=custom_string_for_preemptivemac1'
+	#list preemptivemac 'mac=00:00:D0:01:D0:02;sessiontimeout=1000;uploadrate=200;downloadrate=800;uploadquota=0;downloadquota=0;custom=custom_string_for_preemptivemac2'
 	#list preemptivemac 'mac=00:00:E0:01:D0:03;sessiontimeout=4200;uploadrate=100;downloadrate=0;uploadquota=0;downloadquota=0;custom=custom_string_for_preemptivemac3'
 
 	###########################################################################################

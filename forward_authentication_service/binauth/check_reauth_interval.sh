@@ -19,8 +19,7 @@ parse_timestamp() {
 }
 
 # Get the reauth_interval in seconds
-option="reauth_interval"
-get_option_from_config
+reauth_interval=$(ndscfg get_option_from_config reauth_interval)
 
 If [ -z "$reauth_interval" ] || [ "$reauth_interval" -eq 0 ]; then
 	# Reauth interval checking is disabled.

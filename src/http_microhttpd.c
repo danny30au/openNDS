@@ -1359,7 +1359,7 @@ static int redirect_to_splashpage(struct MHD_Connection *connection, t_client *c
 		return ret;
 	}
 
-	querystr = safe_calloc(QUERYMAXLEN);
+	querystr = safe_calloc(ENC_QUERYSTR);
 
 	if (!querystr) {
 		ret = send_error(connection, 503);

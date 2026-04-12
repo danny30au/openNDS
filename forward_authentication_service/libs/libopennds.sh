@@ -1140,18 +1140,35 @@ check_gw_mac() {
 }
 
 check_gw_ip() {
+	error_code=0
 
 	if [ -z "$ifname" ]; then
 		gw_ip="error"
 		error_code=1
-	else
+	fi
+
+	if [ "$error_code" -eq 0 ]; then
+		#Check if interface is wireless - if it is, exit
+		wireless_status=$(iw dev "$ifname" "info" &> /dev/null; echo -n $?)
+
+		if [ "$wireless_status" -eq 0 ]; then
+			gw_ip="error"
+			error_code=1
+			syslogmessage="Interface [ $ifname ] - Use of a wireless interface as gatewayinterface is forbidden. Configure a BRIDGE instead."
+			debugtype="err"
+			write_to_syslog
+		fi
+	fi
+
+	if [ "$error_code" -eq 0 ]; then
+		# Check if interface is an alias - if it is, exit
 		alias_check=$(ip -f inet addr | grep "inet" | awk '{printf "%s \n", $0}' | grep -c "$ifname ")
 
 		if [ "$alias_check" -ne 1 ]; then
 			gw_ip="error"
 			error_code=1
 			if [ "$alias_check" -gt 1 ]; then
-				syslogmessage="$ifname - IP address aliasing forbidden. Configure a VLAN instead."
+				syslogmessage="Interface [ $ifname ] - IP address aliasing is forbidden. Configure a VLAN instead."
 				debugtype="err"
 				write_to_syslog
 			fi
@@ -1197,16 +1214,23 @@ dhcp_check() {
 
 wait_for_interface () {
 	local ifname="$1"
-	local timeout=60
+	local timeout=30
 
 	for i in $(seq $timeout); do
+
 		if [ $(ip link show $ifname 2> /dev/null | grep -c -w "state UP") -eq 1 ]; then
 			ifstatus="up"
 			break
 		fi
+
+		syslogmessage="Iteration [ $i ], Interface [ $ifname ] is not up yet - waiting....."
+		debugtype="warn"
+		write_to_syslog
+
 		sleep 2
+
 		if [ $i == $timeout ] ; then
-			syslogmessage="$ifname is not up - giving up for now."
+			syslogmessage="Iteration [ $i ], Interface [ $ifname ] is not up - giving up for now."
 			debugtype="warn"
 			write_to_syslog
 			ifstatus="down"
@@ -2487,6 +2511,10 @@ elif [ "$1" = "gatewayip" ]; then
 	# Check for invalid aliases
 	# Returns gateway ip address or error message with error code
 	ifname=$2
+
+	if [ -z "$ifname" ]; then
+		exit 1
+	fi
 
 	wait_for_interface "$ifname"
 

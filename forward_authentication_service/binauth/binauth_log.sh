@@ -195,6 +195,8 @@ else
 	# $8 custom data string
 
 	customdata=$8
+	# Remove any newlines
+	customdata=$(printf '%s' "$customdata" | tr -d '\n')
 
 	# Build the log entry:
 	loginfo="method=\"$1\", clientmac=\"$2\", timestamp=$(date +%s), bytes_incoming=$3, bytes_outgoing=$4, session_start=$5, session_end=$6, token=$7, custom=\"$customdata\""

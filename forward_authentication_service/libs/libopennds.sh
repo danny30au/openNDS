@@ -1798,7 +1798,7 @@ auth_restore () {
 			macstr=$(echo "$mac" | awk -F":" '{printf "%s%s%s%s%s%s", $1, $2, $3, $4, $5, $6}')
 
 			# Create a file for OpenNDS to use for pre-emptive logins - gets deleted once processed
-			echo "$authstr" > "$preemptive_auth/$macstr"
+			echo -n "$authstr" > "$preemptive_auth/$macstr"
 		fi
 
 	done < $authlog

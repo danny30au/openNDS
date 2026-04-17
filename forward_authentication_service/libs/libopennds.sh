@@ -2044,7 +2044,7 @@ send_post_data () {
 	fi
 }
 
-preemptivemac () {
+preemptivemac() {
 	configure_log_location
 	binauthlog="$logdir""binauthlog.log"
 	preemptive_auth="$mountpoint/ndscids/preemptive_auth"
@@ -2090,18 +2090,20 @@ preemptivemac () {
 		downloadrate=0
 	fi
 
-	if [ -z "$1" ]; then
+	if [ -z "$1" ] || [ "$1" = "quiet" ]; then
 		list="preemptivemac"
 		get_list_from_config
+
+		if [ -z "$param" ]; then
+			return 0
+		fi
 	else
-		param="mac=$1;sessiontimeout=$sessiontimeout;uploadrate=$uploadrate;downloadrate=$downloadrate;uploadquota=$uploadquota;downloadquota=$downloadquota;custom=\"preemptivemac-$1\""
+		param="mac=\"$1\";sessiontimeout=$sessiontimeout;uploadrate=$uploadrate;downloadrate=$downloadrate;uploadquota=$uploadquota;downloadquota=$downloadquota;custom=\"preemptivemac-$1\""
 	fi
 
 	for listblock in $param; do
 		mac=""
-
 		eval $listblock
-
 		custom=$(ndsctl b64encode "$custom")
 
 		# skip this client if not in dhcp database
@@ -2115,7 +2117,7 @@ preemptivemac () {
 		# skip this client if already authenticated
 		is_authed=$(grep "$mac" "$binauthlog" | tail -1 | awk -F"method=" '{print $2}' | awk -F", " '{printf "%s", $1}')
 
-		if [ "$is_authed" = "ndsctl_auth" ]; then
+		if [ "$is_authed" = "\"ndsctl_auth\"" ] || [ "$is_authed" = "\"preemptive_auth\"" ]; then
 			continue
 		fi
 
@@ -3409,8 +3411,16 @@ elif [ "$1" = "wget_request" ]; then
 
 elif [ "$1" = "preemptivemac" ]; then
 	# where $2 is an optional client mac address to immediately pre-emptively authenticate
-	# If $2 is not set then the preemptivemac list is parsed
+	# If $2 is not set then the preemptivemac list is returned
 	preemptivemac "$2"
+
+	if [ "$2" = "quiet" ]; then
+		exit 0
+	fi
+
+	if [ -z "$2" ]; then
+		echo -n "$param"
+	fi
 
 	exit 0
 

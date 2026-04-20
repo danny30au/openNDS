@@ -1140,18 +1140,35 @@ check_gw_mac() {
 }
 
 check_gw_ip() {
+	error_code=0
 
 	if [ -z "$ifname" ]; then
 		gw_ip="error"
 		error_code=1
-	else
+	fi
+
+	if [ "$error_code" -eq 0 ]; then
+		#Check if interface is wireless - if it is, exit
+		wireless_status=$(iw dev "$ifname" "info" &> /dev/null; echo -n $?)
+
+		if [ "$wireless_status" -eq 0 ]; then
+			gw_ip="error"
+			error_code=1
+			syslogmessage="Interface [ $ifname ] - Use of a wireless interface as gatewayinterface is forbidden. Configure a BRIDGE instead."
+			debugtype="err"
+			write_to_syslog
+		fi
+	fi
+
+	if [ "$error_code" -eq 0 ]; then
+		# Check if interface is an alias - if it is, exit
 		alias_check=$(ip -f inet addr | grep "inet" | awk '{printf "%s \n", $0}' | grep -c "$ifname ")
 
 		if [ "$alias_check" -ne 1 ]; then
 			gw_ip="error"
 			error_code=1
 			if [ "$alias_check" -gt 1 ]; then
-				syslogmessage="$ifname - IP address aliasing forbidden. Configure a VLAN instead."
+				syslogmessage="Interface [ $ifname ] - IP address aliasing is forbidden. Configure a VLAN instead."
 				debugtype="err"
 				write_to_syslog
 			fi
@@ -1197,16 +1214,23 @@ dhcp_check() {
 
 wait_for_interface () {
 	local ifname="$1"
-	local timeout=60
+	local timeout=30
 
 	for i in $(seq $timeout); do
+
 		if [ $(ip link show $ifname 2> /dev/null | grep -c -w "state UP") -eq 1 ]; then
 			ifstatus="up"
 			break
 		fi
+
+		syslogmessage="Iteration [ $i ], Interface [ $ifname ] is not up yet - waiting....."
+		debugtype="warn"
+		write_to_syslog
+
 		sleep 2
+
 		if [ $i == $timeout ] ; then
-			syslogmessage="$ifname is not up - giving up for now."
+			syslogmessage="Iteration [ $i ], Interface [ $ifname ] is not up - giving up for now."
 			debugtype="warn"
 			write_to_syslog
 			ifstatus="down"
@@ -1774,7 +1798,7 @@ auth_restore () {
 			macstr=$(echo "$mac" | awk -F":" '{printf "%s%s%s%s%s%s", $1, $2, $3, $4, $5, $6}')
 
 			# Create a file for OpenNDS to use for pre-emptive logins - gets deleted once processed
-			echo "$authstr" > "$preemptive_auth/$macstr"
+			echo -n "$authstr" > "$preemptive_auth/$macstr"
 		fi
 
 	done < $authlog
@@ -2020,7 +2044,7 @@ send_post_data () {
 	fi
 }
 
-preemptivemac () {
+preemptivemac() {
 	configure_log_location
 	binauthlog="$logdir""binauthlog.log"
 	preemptive_auth="$mountpoint/ndscids/preemptive_auth"
@@ -2066,18 +2090,20 @@ preemptivemac () {
 		downloadrate=0
 	fi
 
-	if [ -z "$1" ]; then
+	if [ -z "$1" ] || [ "$1" = "quiet" ]; then
 		list="preemptivemac"
 		get_list_from_config
+
+		if [ -z "$param" ]; then
+			return 0
+		fi
 	else
-		param="mac=$1;sessiontimeout=$sessiontimeout;uploadrate=$uploadrate;downloadrate=$downloadrate;uploadquota=$uploadquota;downloadquota=$downloadquota;custom=\"preemptivemac-$1\""
+		param="mac=\"$1\";sessiontimeout=$sessiontimeout;uploadrate=$uploadrate;downloadrate=$downloadrate;uploadquota=$uploadquota;downloadquota=$downloadquota;custom=\"preemptivemac-$1\""
 	fi
 
 	for listblock in $param; do
 		mac=""
-
 		eval $listblock
-
 		custom=$(ndsctl b64encode "$custom")
 
 		# skip this client if not in dhcp database
@@ -2091,7 +2117,7 @@ preemptivemac () {
 		# skip this client if already authenticated
 		is_authed=$(grep "$mac" "$binauthlog" | tail -1 | awk -F"method=" '{print $2}' | awk -F", " '{printf "%s", $1}')
 
-		if [ "$is_authed" = "ndsctl_auth" ]; then
+		if [ "$is_authed" = "\"ndsctl_auth\"" ] || [ "$is_authed" = "\"preemptive_auth\"" ]; then
 			continue
 		fi
 
@@ -2487,6 +2513,10 @@ elif [ "$1" = "gatewayip" ]; then
 	# Check for invalid aliases
 	# Returns gateway ip address or error message with error code
 	ifname=$2
+
+	if [ -z "$ifname" ]; then
+		exit 1
+	fi
 
 	wait_for_interface "$ifname"
 
@@ -3381,8 +3411,16 @@ elif [ "$1" = "wget_request" ]; then
 
 elif [ "$1" = "preemptivemac" ]; then
 	# where $2 is an optional client mac address to immediately pre-emptively authenticate
-	# If $2 is not set then the preemptivemac list is parsed
+	# If $2 is not set then the preemptivemac list is returned
 	preemptivemac "$2"
+
+	if [ "$2" = "quiet" ]; then
+		exit 0
+	fi
+
+	if [ -z "$2" ]; then
+		echo -n "$param"
+	fi
 
 	exit 0
 

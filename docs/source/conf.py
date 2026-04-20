@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'openNDS'
-copyright = '2015 - 2025 BlueWave Projects and Services and The openNDS Contributors <opennds@blue-wave.net>'
+copyright = '2015 - 2026 BlueWave Projects and Services and The openNDS Contributors <opennds@blue-wave.net>'
 author = 'The openNDS Contributors'
 
 # The version info for the project you're documenting, acts as replacement for

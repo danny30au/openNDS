@@ -74,27 +74,6 @@ urlencode() {
 	urlencoded=$(echo "$buffer" | awk '{ gsub(/\$/, "\\%24"); print }')
 }
 
-get_option_from_config() {
-
-	type uci &> /dev/null
-	uci_status=$?
-
-	if [ $uci_status -eq 0 ]; then
-		param=$(uci export opennds | grep "option" | grep "$option" | awk -F"'" 'NF > 1 {printf "%s ", $2}')
-	else
-		param=$(cat /etc/config/opennds | grep "option" | grep "$option" | awk -F"#" '{printf "%s\n", $1}' | awk -F"'" 'NF > 1 {printf "%s ", $2}')
-	fi
-
-	# remove trailing space character
-	param=$(echo "$param" | sed 's/.$//')
-
-	# urlencode
-	urlencode "$param"
-	param=$urlencoded
-	eval $option="$param" &>/dev/null
-}
-
-
 configure_log_location() {
 	# Generate the Logfile location; use the tmpfs "temporary" directory to prevent flash wear.
 	# Alternately you may choose to manually override the settings generated here.
@@ -119,9 +98,7 @@ configure_log_location() {
 	done
 
 	# Check if config overrides mountpoint for logdir
-	log_mountpoint=""
-	option="log_mountpoint"
-	get_option_from_config
+	log_mountpoint=$(ndscfg get_option_from_config log_mountpoint)
 
 	if [ ! -z "$log_mountpoint" ]; then
 		logdir="$log_mountpoint/ndslog/"
@@ -218,6 +195,8 @@ else
 	# $8 custom data string
 
 	customdata=$8
+	# Remove any newlines
+	customdata=$(printf '%s' "$customdata" | tr -d '\n')
 
 	# Build the log entry:
 	loginfo="method=\"$1\", clientmac=\"$2\", timestamp=$(date +%s), bytes_incoming=$3, bytes_outgoing=$4, session_start=$5, session_end=$6, token=$7, custom=\"$customdata\""
@@ -293,7 +272,7 @@ else
 fi
 
 # Include custom binauth script if exitlevel is still 0
-custombinauthpath=$(uci get opennds.setup.custombinauth 2> /dev/null)
+custombinauthpath=$(ndscfg get_option_from_config custombinauth 2> /dev/null)
 
 if [ ! -z "$custombinauthpath" ] && [ -e "$custombinauthpath" ] && [ "$exitlevel" -eq 0 ]; then
 	. $custombinauthpath

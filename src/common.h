@@ -61,7 +61,7 @@
 #define QUERYMAXLEN 8192
 
 /* Max length of a query string in bytes */
-#define ENC_QUERYSTR (QUERYMAXLEN * 1.333)
+#define ENC_QUERYSTR (QUERYMAXLEN * 1.5)
 
 /* Separator for Preauth and Encrypted query string */
 #define QUERYSEPARATOR ", "

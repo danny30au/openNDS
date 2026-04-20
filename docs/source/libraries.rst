@@ -4,7 +4,20 @@ Library Utilities
 Overview
 ********
 
-A number of library utilities are included. These may be used by NDS itself, FAS and Preauth. These may in the future, be enhanced, have additional functionality added.
+A number of library utilities are included. These may be used by NDS itself, FAS and Preauth. These may from time to time, be enhanced and have additional functionality added.
+
+The `ndscfg` command is provided as a CLI wrapper for accessing many library calls, or the library scrips may be called directly.
+
+The `ndscfg` command suppports both commandline arguments and pipes.
+
+For example, to display the OpenNDS gateway route:
+
+``ndscfg gatewayroute``
+
+returns the gatewayroute string
+
+``online:192.168.4.1,eth1``
+
 
 By default, library utilities will be installed in the folder
 
